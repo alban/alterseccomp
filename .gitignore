@@ -1,0 +1,8 @@
+# Binaries for programs and plugins
+alterseccomp
+
+# editor and IDE paraphernalia
+.idea
+.vscode
+*.swp
+*.swo
