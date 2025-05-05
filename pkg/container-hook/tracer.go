@@ -68,6 +68,7 @@ type EventType int
 const (
 	EventTypeAddContainer EventType = iota
 	EventTypeRemoveContainer
+	EventTypePreCreateContainer
 )
 
 const (
@@ -718,6 +719,44 @@ func (n *ContainerNotifier) monitorRuntimeInstance(mntnsId uint64, bundleDir str
 		mntnsId:        mntnsId,
 		timestamp:      now,
 		removeMarks:    removeMarks,
+	}
+
+	// Call PreCreate callback
+
+	bundleConfigJSONFile, err := os.Open(configJSONPath)
+	if err != nil {
+		log.Errorf("fanotify: could not open config.json (%q): %s", configJSONPath, err)
+		return nil
+	}
+	defer bundleConfigJSONFile.Close()
+	bundleConfigJSON, err := io.ReadAll(io.LimitReader(bundleConfigJSONFile, configJsonMaxSize))
+	if err != nil {
+		log.Errorf("fanotify: could not read config.json (%q): %s", configJSONPath, err)
+		return nil
+	}
+	containerConfig := &ocispec.Spec{}
+	err = json.Unmarshal(bundleConfigJSON, containerConfig)
+	if err != nil {
+		log.Errorf("fanotify: could not unmarshal config.json (%q): %s", configJSONPath, err)
+		return nil
+	}
+	n.callback(ContainerEvent{
+		Type:            EventTypePreCreateContainer,
+		ContainerID:     containerID,
+		ContainerConfig: containerConfig,
+		Bundle:          bundleDir,
+	})
+	// Marshall containerConfig back to bundleConfigJSON
+	newConfigJSON, err := json.Marshal(containerConfig)
+	if err != nil {
+		log.Errorf("fanotify: could not marshal config.json (%q): %s", configJSONPath, err)
+		return nil
+	}
+
+	err = os.WriteFile(configJSONPath, newConfigJSON, 0644)
+	if err != nil {
+		log.Errorf("fanotify: could not write config.json (%q): %s", configJSONPath, err)
+		return nil
 	}
 
 	return nil
