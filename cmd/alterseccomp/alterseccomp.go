@@ -19,13 +19,37 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"slices"
 	"syscall"
 
-	containerhook "github.com/alban/alterseccomp/pkg/container-hook"
 	"github.com/inspektor-gadget/inspektor-gadget/pkg/utils/host"
+	ocispec "github.com/opencontainers/runtime-spec/specs-go"
+
+	containerhook "github.com/alban/alterseccomp/pkg/container-hook"
 )
 
 func callback(notif containerhook.ContainerEvent) {
+	if notif.Type != containerhook.EventTypePreCreateContainer {
+		return
+	}
+	if notif.ContainerConfig == nil {
+		return
+	}
+
+	if notif.ContainerConfig.Linux == nil {
+		fmt.Printf("Linux config is nil\n")
+		return
+	}
+	if notif.ContainerConfig.Linux.Seccomp == nil {
+		fmt.Printf("Seccomp config is nil\n")
+		return
+	}
+	if slices.Contains(notif.ContainerConfig.Linux.Seccomp.Flags, ocispec.LinuxSeccompFlagLog) {
+		fmt.Printf("Seccomp config already has log flag\n")
+		return
+	}
+	notif.ContainerConfig.Linux.Seccomp.Flags = append(notif.ContainerConfig.Linux.Seccomp.Flags, ocispec.LinuxSeccompFlagLog)
+	fmt.Printf("Seccomp flags updated: %+v\n", notif.ContainerConfig.Linux.Seccomp.Flags)
 }
 
 func main() {
