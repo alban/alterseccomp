@@ -4,6 +4,7 @@ go 1.24.0
 
 require (
 	github.com/cilium/ebpf v0.18.0
+	github.com/containerd/containerd v1.7.27
 	github.com/inspektor-gadget/inspektor-gadget v0.39.0
 	github.com/opencontainers/runtime-spec v1.2.1
 	github.com/s3rj1k/go-fanotify/fanotify v0.0.0-20240229202106-bca3154da60a
@@ -17,7 +18,6 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/Microsoft/hcsshim v0.12.9 // indirect
 	github.com/containerd/cgroups/v3 v3.0.3 // indirect
-	github.com/containerd/containerd v1.7.27 // indirect
 	github.com/containerd/containerd/api v1.8.0 // indirect
 	github.com/containerd/continuity v0.4.4 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect

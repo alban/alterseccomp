@@ -1,3 +1,6 @@
+CONTAINER_REPO ?= ghcr.io/alban/alterseccomp
+IMAGE_TAG ?= latest
+
 .PHONY: all
 all: alterseccomp
 
@@ -27,3 +30,6 @@ ebpf-objects-outside-docker:
 # it.
 	TARGET=arm64 CFLAGS="-I/usr/include/$(shell uname -m)-linux-gnu -I$(shell pwd)/include/arm64/ -I$(shell pwd)/include/" go generate ./...
 	TARGET=amd64 CFLAGS="-I/usr/include/$(shell uname -m)-linux-gnu -I$(shell pwd)/include/amd64/ -I$(shell pwd)/include/" go generate ./...
+
+build-container:
+	docker build -t $(CONTAINER_REPO):$(IMAGE_TAG) -f Dockerfile .

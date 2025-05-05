@@ -22,6 +22,7 @@ import (
 	"slices"
 	"syscall"
 
+	containerdseccomp "github.com/containerd/containerd/contrib/seccomp"
 	"github.com/inspektor-gadget/inspektor-gadget/pkg/utils/host"
 	ocispec "github.com/opencontainers/runtime-spec/specs-go"
 
@@ -41,7 +42,12 @@ func callback(notif containerhook.ContainerEvent) {
 		return
 	}
 	if notif.ContainerConfig.Linux.Seccomp == nil {
-		fmt.Printf("Seccomp config is nil\n")
+		fmt.Printf("Seccomp config is nil. Creating one from containerd.\n")
+		sp := containerdseccomp.DefaultProfile(notif.ContainerConfig)
+		if !slices.Contains(sp.Flags, ocispec.LinuxSeccompFlagLog) {
+			sp.Flags = append(sp.Flags, ocispec.LinuxSeccompFlagLog)
+		}
+		notif.ContainerConfig.Linux.Seccomp = sp
 		return
 	}
 	if slices.Contains(notif.ContainerConfig.Linux.Seccomp.Flags, ocispec.LinuxSeccompFlagLog) {
